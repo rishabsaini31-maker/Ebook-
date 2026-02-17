@@ -94,65 +94,96 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {!showAuth && (
-        <div className="text-center bg-white/10 p-12 rounded-2xl backdrop-blur-lg border border-white/20 shadow-2xl max-w-md">
-          <h1 className="text-5xl mb-5 text-shadow">Welcome to EBOOK</h1>
-          <p className="text-xl mb-8">
-            Your ultimate financial management tool for businesses.
-          </p>
+        <div className="text-center p-12 rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl max-w-lg mx-4">
+          <div className="mb-8">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <i className="fas fa-book-open text-4xl text-white"></i>
+            </div>
+            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+              EBOOK
+            </h1>
+            <p className="text-xl text-gray-300 mb-2">
+              Finance Analytics Platform
+            </p>
+            <p className="text-gray-400">
+              Your ultimate financial management tool for businesses
+            </p>
+          </div>
+
+          <div className="space-y-4 mb-8">
+            <div className="flex items-center gap-3 text-gray-300">
+              <i className="fas fa-check-circle text-green-400"></i>
+              <span>Track Sales & Expenses</span>
+            </div>
+            <div className="flex items-center gap-3 text-gray-300">
+              <i className="fas fa-check-circle text-green-400"></i>
+              <span>Manage Loans & Payments</span>
+            </div>
+            <div className="flex items-center gap-3 text-gray-300">
+              <i className="fas fa-check-circle text-green-400"></i>
+              <span>Real-time Analytics & Reports</span>
+            </div>
+          </div>
+
           <button
             onClick={handleEnterApp}
-            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 rounded-full text-xl hover:from-red-600 hover:to-red-700 transition-all hover:-translate-y-0.5 shadow-lg"
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl text-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all hover:-translate-y-1 shadow-lg hover:shadow-purple-500/25"
           >
-            Enter App
+            <i className="fas fa-rocket mr-2"></i>
+            Get Started
           </button>
         </div>
       )}
 
       {showAuth && !showSignup && (
-        <div className="max-w-md mx-auto bg-white/95 p-10 rounded-3xl shadow-2xl backdrop-blur-lg border border-white/30 animate-slideIn">
-          <h2 className="text-3xl text-center mb-8 text-gray-800 font-semibold">
-            <i className="fas fa-sign-in-alt mr-2 text-primary"></i>
-            Login
-          </h2>
+        <div className="max-w-md w-full mx-4 bg-white/95 p-10 rounded-3xl shadow-2xl backdrop-blur-lg border border-white/30">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+              <i className="fas fa-sign-in-alt text-2xl text-white"></i>
+            </div>
+            <h2 className="text-3xl text-gray-800 font-bold">Welcome Back</h2>
+            <p className="text-gray-500 mt-2">Sign in to your account</p>
+          </div>
+
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <div className="relative">
-              <i className="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10"></i>
+              <i className="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
               <input
                 type="email"
                 name="email"
-                placeholder="Email"
+                placeholder="Email Address"
                 required
-                className="w-full pl-12 pr-4 py-3 border-2 border-white/30 rounded-xl bg-white/90 backdrop-blur-sm focus:outline-none focus:border-primary focus:shadow-lg focus:-translate-y-0.5 transition-all text-gray-800"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:border-purple-500 focus:bg-white focus:shadow-lg transition-all text-gray-800"
               />
             </div>
             <div className="relative">
-              <i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10"></i>
+              <i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
               <input
                 type="password"
                 name="password"
                 placeholder="Password"
                 required
-                className="w-full pl-12 pr-4 py-3 border-2 border-white/30 rounded-xl bg-white/90 backdrop-blur-sm focus:outline-none focus:border-primary focus:shadow-lg focus:-translate-y-0.5 transition-all text-gray-800"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:border-purple-500 focus:bg-white focus:shadow-lg transition-all text-gray-800"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 shadow-lg disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold transition-all hover:-translate-y-0.5 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <i className="fas fa-sign-in-alt mr-2"></i>
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
-          
+
           <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-4 text-gray-500 text-sm">OR</span>
-            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="flex-1 border-t border-gray-200"></div>
+            <span className="px-4 text-gray-400 text-sm">or continue with</span>
+            <div className="flex-1 border-t border-gray-200"></div>
           </div>
-          
+
           <button
             onClick={() => signIn("google")}
             className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 text-gray-700 px-6 py-3 rounded-xl cursor-pointer transition-all hover:bg-gray-50 hover:border-gray-300 hover:-translate-y-0.5 shadow-md"
@@ -175,83 +206,96 @@ export default function Home() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            <span className="font-medium">Continue with Google</span>
+            <span className="font-medium">Google</span>
           </button>
+
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{" "}
             <button
               onClick={() => setShowSignup(true)}
-              className="text-primary font-semibold hover:underline transition-colors"
+              className="text-purple-600 font-semibold hover:underline transition-colors"
             >
               Sign up
             </button>
           </p>
+
+          <button
+            onClick={() => setShowAuth(false)}
+            className="w-full mt-4 text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <i className="fas fa-arrow-left mr-2"></i>
+            Back to welcome
+          </button>
         </div>
       )}
 
       {showSignup && (
-        <div className="max-w-md mx-auto bg-white/95 p-10 rounded-3xl shadow-2xl backdrop-blur-lg border border-white/30 animate-slideIn">
-          <h2 className="text-3xl text-center mb-8 text-gray-800 font-semibold">
-            <i className="fas fa-user-plus mr-2 text-primary"></i>
-            Sign Up
-          </h2>
+        <div className="max-w-md w-full mx-4 bg-white/95 p-10 rounded-3xl shadow-2xl backdrop-blur-lg border border-white/30">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+              <i className="fas fa-user-plus text-2xl text-white"></i>
+            </div>
+            <h2 className="text-3xl text-gray-800 font-bold">Create Account</h2>
+            <p className="text-gray-500 mt-2">Join EBOOK today</p>
+          </div>
+
           <form onSubmit={handleSignup} className="flex flex-col gap-4">
             <div className="relative">
-              <i className="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10"></i>
+              <i className="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
               <input
                 type="text"
                 name="username"
                 placeholder="Username"
                 required
-                className="w-full pl-12 pr-4 py-3 border-2 border-white/30 rounded-xl bg-white/90 backdrop-blur-sm focus:outline-none focus:border-primary focus:shadow-lg focus:-translate-y-0.5 transition-all text-gray-800"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:border-purple-500 focus:bg-white focus:shadow-lg transition-all text-gray-800"
               />
             </div>
             <div className="relative">
-              <i className="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10"></i>
+              <i className="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
               <input
                 type="email"
                 name="email"
-                placeholder="Email"
+                placeholder="Email Address"
                 required
-                className="w-full pl-12 pr-4 py-3 border-2 border-white/30 rounded-xl bg-white/90 backdrop-blur-sm focus:outline-none focus:border-primary focus:shadow-lg focus:-translate-y-0.5 transition-all text-gray-800"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:border-purple-500 focus:bg-white focus:shadow-lg transition-all text-gray-800"
               />
             </div>
             <div className="relative">
-              <i className="fas fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10"></i>
+              <i className="fas fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
               <input
                 type="tel"
                 name="phone"
                 placeholder="Phone Number"
                 required
-                className="w-full pl-12 pr-4 py-3 border-2 border-white/30 rounded-xl bg-white/90 backdrop-blur-sm focus:outline-none focus:border-primary focus:shadow-lg focus:-translate-y-0.5 transition-all text-gray-800"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:border-purple-500 focus:bg-white focus:shadow-lg transition-all text-gray-800"
               />
             </div>
             <div className="relative">
-              <i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10"></i>
+              <i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
               <input
                 type="password"
                 name="password"
                 placeholder="Password"
                 required
-                className="w-full pl-12 pr-4 py-3 border-2 border-white/30 rounded-xl bg-white/90 backdrop-blur-sm focus:outline-none focus:border-primary focus:shadow-lg focus:-translate-y-0.5 transition-all text-gray-800"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:border-purple-500 focus:bg-white focus:shadow-lg transition-all text-gray-800"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl cursor-pointer transition-all hover:-translate-y-0.5 shadow-lg disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold transition-all hover:-translate-y-0.5 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <i className="fas fa-user-plus mr-2"></i>
-              {loading ? "Signing up..." : "Sign Up"}
+              {loading ? "Creating account..." : "Create Account"}
             </button>
           </form>
-          
+
           <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-4 text-gray-500 text-sm">OR</span>
-            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="flex-1 border-t border-gray-200"></div>
+            <span className="px-4 text-gray-400 text-sm">or continue with</span>
+            <div className="flex-1 border-t border-gray-200"></div>
           </div>
-          
+
           <button
             onClick={() => signIn("google")}
             className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 text-gray-700 px-6 py-3 rounded-xl cursor-pointer transition-all hover:bg-gray-50 hover:border-gray-300 hover:-translate-y-0.5 shadow-md"
@@ -274,17 +318,26 @@ export default function Home() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            <span className="font-medium">Sign up with Google</span>
+            <span className="font-medium">Google</span>
           </button>
+
           <p className="text-center mt-6 text-gray-600">
             Already have an account?{" "}
             <button
               onClick={() => setShowSignup(false)}
-              className="text-primary font-semibold hover:underline transition-colors"
+              className="text-purple-600 font-semibold hover:underline transition-colors"
             >
-              Login
+              Sign in
             </button>
           </p>
+
+          <button
+            onClick={() => setShowAuth(false)}
+            className="w-full mt-4 text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <i className="fas fa-arrow-left mr-2"></i>
+            Back to welcome
+          </button>
         </div>
       )}
     </div>
