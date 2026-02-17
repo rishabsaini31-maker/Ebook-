@@ -190,11 +190,11 @@ export default function AnalysisPage() {
           </div>
         )}
 
-        {/* Line Chart - Sales, Expenses, Profit Trend */}
+        {/* Line Chart - Sales, Expenses, Profit/Loss Trend */}
         <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/20 mb-8">
           <h3 className="text-xl font-semibold text-white mb-4">
             <i className="fas fa-chart-line text-cyan-400 mr-2"></i>
-            Sales, Expenses & Profit Trend
+            Sales, Expenses & Profit/Loss Trend
           </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -235,6 +235,14 @@ export default function AnalysisPage() {
                   strokeWidth={3}
                   dot={{ fill: "#10B981" }}
                   name="Profit"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="loss"
+                  stroke="#EF4444"
+                  strokeWidth={3}
+                  dot={{ fill: "#EF4444" }}
+                  name="Loss"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -280,6 +288,12 @@ export default function AnalysisPage() {
                     dataKey="profit"
                     fill="#10B981"
                     name="Profit"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="loss"
+                    fill="#EF4444"
+                    name="Loss"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
@@ -374,7 +388,7 @@ export default function AnalysisPage() {
         </div>
 
         {/* Legend */}
-        <div className="bg-white/5 backdrop-blur-lg p-4 rounded-xl border border-white/10">
+        <div className="bg-white/5 backdrop-blur-lg p-4 rounded-xl border border-white/10 mb-8">
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-blue-500 rounded"></div>
@@ -388,8 +402,56 @@ export default function AnalysisPage() {
               <div className="w-4 h-4 bg-green-500 rounded"></div>
               <span className="text-gray-300">Profit (Green)</span>
             </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-500 rounded"></div>
+              <span className="text-gray-300">Loss (Red)</span>
+            </div>
           </div>
         </div>
+
+        {/* Profit/Loss Summary */}
+        {data?.summary && (
+          <div className={`p-8 rounded-3xl border-2 ${data.summary.totalProfit >= 0 ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/50" : "bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/50"}`}>
+            <div className="text-center">
+              <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${data.summary.totalProfit >= 0 ? "bg-green-500/30" : "bg-red-500/30"}`}>
+                <i className={`fas ${data.summary.totalProfit >= 0 ? "fa-arrow-trend-up" : "fa-arrow-trend-down"} text-4xl ${data.summary.totalProfit >= 0 ? "text-green-400" : "text-red-400"}`}></i>
+              </div>
+              
+              <h2 className={`text-3xl font-bold mb-2 ${data.summary.totalProfit >= 0 ? "text-green-400" : "text-red-400"}`}>
+                {data.summary.totalProfit >= 0 ? "🎉 You're in PROFIT!" : "📉 You're in LOSS!"}
+              </h2>
+              
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-center gap-4 text-lg">
+                  <span className="text-gray-400">Total Sales:</span>
+                  <span className="font-bold text-blue-400">{formatCurrency(data.summary.totalSales)}</span>
+                </div>
+                <div className="flex items-center justify-center gap-4 text-lg">
+                  <span className="text-gray-400">Total Expenses:</span>
+                  <span className="font-bold text-yellow-400">{formatCurrency(data.summary.totalExpenses)}</span>
+                </div>
+                <div className="border-t border-white/10 pt-3 mt-3">
+                  <div className="flex items-center justify-center gap-4 text-xl">
+                    <span className="text-gray-300 font-medium">Net Result:</span>
+                    <span className={`font-bold ${data.summary.totalProfit >= 0 ? "text-green-400" : "text-red-400"}`}>
+                      {formatCurrency(Math.abs(data.summary.totalProfit))}
+                      {data.summary.totalProfit >= 0 ? " Profit" : " Loss"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-white/5 rounded-xl">
+                <p className="text-gray-300 text-sm">
+                  {data.summary.totalProfit >= 0
+                    ? `💰 Great job! Your sales exceeded expenses by ${formatCurrency(data.summary.totalProfit)}. You're running a profitable business!`
+                    : `⚠️ Your expenses exceeded sales by ${formatCurrency(Math.abs(data.summary.totalProfit))}. Consider reviewing your expenses to improve profitability.`
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

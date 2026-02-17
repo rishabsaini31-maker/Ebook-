@@ -42,12 +42,14 @@ export async function GET(request) {
         const sales = parseFloat(salesResult.rows[0].total);
         const expenses = parseFloat(expensesResult.rows[0].total);
 
+        const profit = sales - expenses;
         salesData.push({
           name: dayName,
           date: dateStr,
           sales,
           expenses,
-          profit: sales - expenses,
+          profit: profit >= 0 ? profit : 0,
+          loss: profit < 0 ? Math.abs(profit) : 0,
         });
       }
 
@@ -93,11 +95,13 @@ export async function GET(request) {
         const sales = parseFloat(salesResult.rows[0].total);
         const expenses = parseFloat(expensesResult.rows[0].total);
 
+        const profit = sales - expenses;
         salesData.push({
           name: weekLabel,
           sales,
           expenses,
-          profit: sales - expenses,
+          profit: profit >= 0 ? profit : 0,
+          loss: profit < 0 ? Math.abs(profit) : 0,
         });
       }
 
@@ -144,11 +148,13 @@ export async function GET(request) {
         const sales = parseFloat(salesResult.rows[0].total);
         const expenses = parseFloat(expensesResult.rows[0].total);
 
+        const profit = sales - expenses;
         salesData.push({
           name: monthName,
           sales,
           expenses,
-          profit: sales - expenses,
+          profit: profit >= 0 ? profit : 0,
+          loss: profit < 0 ? Math.abs(profit) : 0,
         });
       }
 
@@ -187,11 +193,13 @@ export async function GET(request) {
         const sales = parseFloat(salesResult.rows[0].total);
         const expenses = parseFloat(expensesResult.rows[0].total);
 
+        const profit = sales - expenses;
         salesData.push({
           name: year.toString(),
           sales,
           expenses,
-          profit: sales - expenses,
+          profit: profit >= 0 ? profit : 0,
+          loss: profit < 0 ? Math.abs(profit) : 0,
         });
       }
 
