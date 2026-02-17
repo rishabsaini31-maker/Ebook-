@@ -3,10 +3,13 @@ import Razorpay from "razorpay";
 import pool from "../../../lib/db";
 import { authenticateToken } from "../../../lib/auth";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Get Razorpay instance lazily
+const getRazorpay = () => {
+  return new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+};
 
 // Create Razorpay order
 export async function POST(request) {
@@ -34,6 +37,7 @@ export async function POST(request) {
     const selectedPlan = plans[plan];
 
     // Create Razorpay order
+    const razorpay = getRazorpay();
     const order = await razorpay.orders.create({
       amount: selectedPlan.amount,
       currency: "INR",
