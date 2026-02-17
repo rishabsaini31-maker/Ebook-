@@ -47,44 +47,83 @@ export default function ExpensesReport() {
     );
   };
 
-  const handlePeriodChange = (newPeriod) => {
-    setPeriod(newPeriod);
+  const getCategoryColor = (category) => {
+    const colors = {
+      rent: "from-blue-500 to-blue-600",
+      "stock purchase": "from-purple-500 to-purple-600",
+      transport: "from-yellow-500 to-yellow-600",
+      electricity: "from-cyan-500 to-cyan-600",
+      salary: "from-green-500 to-green-600",
+      miscellaneous: "from-gray-500 to-gray-600",
+    };
+    return colors[category] || "from-gray-500 to-gray-600";
   };
+
+  const profileImage = Cookies.get("profile_image") || "";
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-2xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-xl">Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
-      <header className="flex justify-between items-center px-5 py-3 bg-gradient-to-r from-gray-800 to-gray-700 text-white shadow-lg">
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-2 rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all"
-        >
-          <i className="fas fa-arrow-left mr-2"></i>
-          Back to Dashboard
-        </button>
-        <h2 className="text-3xl font-bold">Expenses Report</h2>
+      <header className="bg-gray-900/80 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+            >
+              <i className="fas fa-arrow-left"></i>
+              <span className="hidden sm:inline">Back</span>
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <i className="fas fa-chart-bar text-white"></i>
+              </div>
+              <h1 className="text-lg sm:text-xl font-bold text-white">
+                Expenses Report
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full border-2 border-purple-500 object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <i className="fas fa-user text-white text-sm"></i>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Period Buttons */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6">
           {["daily", "weekly", "monthly", "yearly"].map((p) => (
             <button
               key={p}
-              onClick={() => handlePeriodChange(p)}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              onClick={() => setPeriod(p)}
+              className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all text-sm sm:text-base ${
                 period === p
-                  ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
-                  : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800 hover:from-gray-200 hover:to-gray-300"
+                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
+                  : "bg-white/10 text-gray-300 hover:bg-white/20"
               }`}
             >
               {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -92,63 +131,64 @@ export default function ExpensesReport() {
           ))}
         </div>
 
+        {/* Total Card */}
+        <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/20 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-400 text-sm">Total Expenses</p>
+              <p className="text-3xl font-bold text-red-400">
+                {formatCurrency(getTotal())}
+              </p>
+            </div>
+            <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <i className="fas fa-money-bill-wave text-white text-xl"></i>
+            </div>
+          </div>
+        </div>
+
         {/* Report Content */}
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+        <div className="bg-white/10 backdrop-blur-lg p-4 sm:p-6 rounded-2xl border border-white/20">
+          <h3 className="text-xl font-semibold mb-4 text-white">
             Expenses {period.charAt(0).toUpperCase() + period.slice(1)}
           </h3>
-          <p className="text-xl mb-6 text-gray-700">
-            Total:{" "}
-            <span className="font-bold text-red-600">
-              {formatCurrency(getTotal())}
-            </span>
-          </p>
 
           {expenses.length === 0 ? (
-            <p className="text-center text-gray-600 py-8">
-              No expenses data for this period.
-            </p>
+            <div className="text-center py-12">
+              <i className="fas fa-chart-bar text-4xl text-gray-500 mb-4"></i>
+              <p className="text-gray-400">No expenses data for this period.</p>
+            </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300 rounded-lg overflow-hidden">
-                <thead>
-                  <tr className="bg-red-600 text-white">
-                    <th className="px-6 py-4 text-left font-semibold">Date</th>
-                    <th className="px-6 py-4 text-left font-semibold">
-                      Amount
-                    </th>
-                    <th className="px-6 py-4 text-left font-semibold">
-                      Category
-                    </th>
-                    <th className="px-6 py-4 text-left font-semibold">
-                      Description
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {expenses.map((expense, index) => (
-                    <tr
-                      key={expense.id}
-                      className={`${
-                        index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                      } hover:bg-gray-100 transition-colors`}
-                    >
-                      <td className="px-6 py-4 border-b border-gray-200">
-                        {expense.date}
-                      </td>
-                      <td className="px-6 py-4 border-b border-gray-200 font-semibold text-red-600">
-                        {formatCurrency(expense.amount)}
-                      </td>
-                      <td className="px-6 py-4 border-b border-gray-200">
-                        {expense.category}
-                      </td>
-                      <td className="px-6 py-4 border-b border-gray-200">
-                        {expense.description || "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-3">
+              {expenses.map((expense) => (
+                <div
+                  key={expense.id}
+                  className="bg-white/5 p-4 rounded-xl border border-white/10 hover:border-red-500/50 transition-all"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <i className="fas fa-calendar text-gray-400 text-sm"></i>
+                        <span className="text-gray-300 text-sm">
+                          {expense.date}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 bg-gradient-to-r ${getCategoryColor(expense.category)} text-white text-xs rounded-full`}
+                        >
+                          {expense.category}
+                        </span>
+                      </div>
+                      {expense.description && (
+                        <p className="text-gray-400 text-sm">
+                          {expense.description}
+                        </p>
+                      )}
+                    </div>
+                    <p className="text-xl font-bold text-red-400">
+                      {formatCurrency(expense.amount)}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
