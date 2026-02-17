@@ -8,24 +8,42 @@ export default function PremiumPage() {
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const token = Cookies.get("token");
     if (!token) {
       router.push("/");
+      return;
     }
+    fetchProfile();
   }, [router]);
+
+  const fetchProfile = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch("/api/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
 
   const plans = [
     {
       id: "monthly",
       name: "Monthly",
-      price: 299,
+      price: 99,
       period: "month",
       description: "Perfect for trying out premium features",
       features: [
         "Unlimited transaction records",
-        "Advanced analytics & reports",
+        "Full Analysis & advanced charts",
         "Export data to PDF/Excel",
         "Priority customer support",
         "Custom categories",
@@ -35,10 +53,10 @@ export default function PremiumPage() {
       popular: false,
     },
     {
-      id: "halfyearly",
+      id: "6months",
       name: "6 Months",
-      price: 1499,
-      originalPrice: 1794,
+      price: 499,
+      originalPrice: 594,
       period: "6 months",
       description: "Best value for growing businesses",
       features: [
@@ -55,8 +73,8 @@ export default function PremiumPage() {
     {
       id: "yearly",
       name: "Yearly",
-      price: 2499,
-      originalPrice: 3588,
+      price: 999,
+      originalPrice: 1188,
       period: "year",
       description: "Maximum savings for serious businesses",
       features: [
@@ -72,14 +90,139 @@ export default function PremiumPage() {
     },
   ];
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleSubscribe = async (plan) => {
     setLoading(true);
-    // TODO: Implement payment integration
-    alert(
-      `Subscription to ${plan.name} plan coming soon! Price: ₹${plan.price}`,
-    );
+    setSelectedPlan(plan.id);
+
+    try {
+      const token = Cookies.get("token");
+
+      // Create Razorpay order
+      const orderResponse = await fetch("/api/payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ plan: plan.id }),
+      });
+
+      if (!orderResponse.ok) {
+        throw new Error("Failed to create order");
+      }
+
+      const orderData = await orderResponse.json();
+
+      // Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        alert("Failed to load Razorpay SDK. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Open Razorpay checkout
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        order_id: orderData.orderId,
+        name: "EBOOK Premium",
+        description: orderData.planName,
+        image: "/logo.png",
+        handler: async (response) => {
+          try {
+            // Verify payment
+            const verifyResponse = await fetch("/api/payment", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                plan: plan.id,
+                planDays: orderData.planDays,
+              }),
+            });
+
+            if (verifyResponse.ok) {
+              alert("🎉 Premium activated successfully!");
+              fetchProfile();
+              router.push("/dashboard");
+            } else {
+              alert("Payment verification failed. Please contact support.");
+            }
+          } catch (error) {
+            console.error("Error verifying payment:", error);
+            alert("Error verifying payment. Please contact support.");
+          }
+        },
+        prefill: {
+          name: profile?.username || "",
+          email: profile?.email || "",
+          contact: profile?.phone || "",
+        },
+        theme: {
+          color: "#8B5CF6",
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+            setSelectedPlan(null);
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error("Error initiating payment:", error);
+      alert("Failed to initiate payment. Please try again.");
+    }
+
     setLoading(false);
+    setSelectedPlan(null);
   };
+
+  // Check if user is already premium
+  if (profile?.is_premium) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center bg-white/10 backdrop-blur-xl p-12 rounded-3xl border border-amber-500/50">
+          <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-full flex items-center justify-center">
+            <i className="fas fa-crown text-white text-4xl"></i>
+          </div>
+          <h2 className="text-3xl font-bold text-white mb-4">
+            You're Already Premium!
+          </h2>
+          <p className="text-gray-300 mb-2">Plan: {profile.premium_plan}</p>
+          <p className="text-gray-400 mb-6">
+            Expires:{" "}
+            {new Date(profile.premium_expiry).toLocaleDateString("en-IN")}
+          </p>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -214,7 +357,14 @@ export default function PremiumPage() {
                       : "bg-white/10 text-white hover:bg-white/20 border border-white/20"
                   } disabled:opacity-50`}
                 >
-                  {loading ? "Processing..." : "Choose Plan"}
+                  {loading && selectedPlan === plan.id ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </span>
+                  ) : (
+                    "Choose Plan"
+                  )}
                 </button>
               </div>
             </div>
@@ -244,11 +394,12 @@ export default function PremiumPage() {
 
             <div className="text-center p-6 bg-white/5 rounded-2xl">
               <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
-                <i className="fas fa-file-export text-white text-xl"></i>
+                <i className="fas fa-chart-pie text-white text-xl"></i>
               </div>
-              <h4 className="text-white font-semibold mb-2">Export Reports</h4>
+              <h4 className="text-white font-semibold mb-2">Full Analysis</h4>
               <p className="text-gray-400 text-sm">
-                Download your data in PDF or Excel format for offline access.
+                Access detailed charts and analytics to understand your business
+                better.
               </p>
             </div>
 
@@ -266,13 +417,62 @@ export default function PremiumPage() {
           </div>
         </div>
 
-        {/* FAQ Section */}
-        <div className="mt-12 text-center">
-          <p className="text-gray-400 mb-4">Have questions about premium?</p>
-          <button className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
-            <i className="fas fa-question-circle mr-2"></i>
-            View FAQ
-          </button>
+        {/* Free vs Premium */}
+        <div className="mt-12 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8">
+          <h3 className="text-2xl font-bold text-white text-center mb-8">
+            <i className="fas fa-balance-scale text-cyan-400 mr-2"></i>
+            Free vs Premium
+          </h3>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left py-4 px-4 text-gray-400">Feature</th>
+                  <th className="text-center py-4 px-4 text-gray-400">Free</th>
+                  <th className="text-center py-4 px-4 text-amber-400">
+                    Premium
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-white/5">
+                  <td className="py-4 px-4 text-gray-300">Monthly Entries</td>
+                  <td className="py-4 px-4 text-center text-gray-400">5</td>
+                  <td className="py-4 px-4 text-center text-green-400">
+                    Unlimited
+                  </td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-4 px-4 text-gray-300">Full Analysis</td>
+                  <td className="py-4 px-4 text-center text-red-400">
+                    <i className="fas fa-times"></i>
+                  </td>
+                  <td className="py-4 px-4 text-center text-green-400">
+                    <i className="fas fa-check"></i>
+                  </td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-4 px-4 text-gray-300">Export Reports</td>
+                  <td className="py-4 px-4 text-center text-red-400">
+                    <i className="fas fa-times"></i>
+                  </td>
+                  <td className="py-4 px-4 text-center text-green-400">
+                    <i className="fas fa-check"></i>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-4 text-gray-300">Priority Support</td>
+                  <td className="py-4 px-4 text-center text-red-400">
+                    <i className="fas fa-times"></i>
+                  </td>
+                  <td className="py-4 px-4 text-center text-green-400">
+                    <i className="fas fa-check"></i>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

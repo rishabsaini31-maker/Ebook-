@@ -9,6 +9,8 @@ export default function Expenses() {
   const router = useRouter();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [entryLimit, setEntryLimit] = useState(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     amount: "",
@@ -23,6 +25,7 @@ export default function Expenses() {
       return;
     }
     fetchExpenses();
+    fetchEntryLimit();
   }, [router]);
 
   const fetchExpenses = async () => {
@@ -42,8 +45,51 @@ export default function Expenses() {
     }
   };
 
+  const fetchEntryLimit = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch("/api/entry-limit", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setEntryLimit(data);
+      }
+    } catch (error) {
+      console.error("Error fetching entry limit:", error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check entry limit for free users
+    if (entryLimit && !entryLimit.isPremium) {
+      if (!entryLimit.canAddEntry) {
+        setShowPremiumModal(true);
+        return;
+      }
+      
+      // Increment entry count
+      try {
+        const token = Cookies.get("token");
+        const incrementResponse = await fetch("/api/entry-limit", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        if (!incrementResponse.ok) {
+          const data = await incrementResponse.json();
+          if (data.needsPremium) {
+            setShowPremiumModal(true);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Error incrementing entry count:", error);
+      }
+    }
+    
     try {
       const token = Cookies.get("token");
       const response = await fetch("/api/expenses", {
@@ -64,6 +110,7 @@ export default function Expenses() {
           description: "",
         });
         fetchExpenses();
+        fetchEntryLimit();
       } else {
         const data = await response.json();
         alert("Failed to add expense: " + data.error);
@@ -292,6 +339,40 @@ export default function Expenses() {
           )}
         </div>
       </div>
+
+      {/* Premium Modal */}
+      {showPremiumModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900/95 backdrop-blur-xl rounded-3xl border border-amber-500/30 p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-full flex items-center justify-center">
+                <i className="fas fa-crown text-black text-3xl"></i>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">Entry Limit Reached</h3>
+              <p className="text-gray-400 mb-6">
+                You've used all {entryLimit?.limit} free entries this month. Upgrade to Premium for unlimited entries!
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowPremiumModal(false)}
+                  className="flex-1 py-3 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20 transition-colors"
+                >
+                  Maybe Later
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPremiumModal(false);
+                    router.push("/premium");
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-bold hover:from-amber-400 hover:to-yellow-400 transition-colors"
+                >
+                  <i className="fas fa-crown mr-2"></i>Upgrade
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
