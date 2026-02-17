@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import pool from "@/lib/db";
-import { authenticateToken } from "@/lib/auth";
+import pool from "../../../../../lib/db";
+import { authenticateToken } from "../../../../../lib/auth";
 
 export async function PUT(request, { params }) {
   const user = authenticateToken(request);

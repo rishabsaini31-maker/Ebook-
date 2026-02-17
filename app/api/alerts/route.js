@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import pool from "@/lib/db";
-import { authenticateToken } from "@/lib/auth";
+import pool from "../../../lib/db";
+import { authenticateToken } from "../../../lib/auth";
 
 const getSum = async (table, userId, whereClause, params) => {
   const result = await pool.query(
