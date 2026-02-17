@@ -25,9 +25,10 @@ export async function POST(request) {
 
     // Define plan prices (in paise - Indian currency)
     const plans = {
-      monthly: { amount: 9900, name: "Monthly Plan", days: 30 }, // ₹99
-      "6months": { amount: 49900, name: "6 Months Plan", days: 180 }, // ₹499
-      yearly: { amount: 99900, name: "Yearly Plan", days: 365 }, // ₹999
+      trial: { amount: 100, name: "1 Day Trial Plan", days: 1 }, // ₹1
+      monthly: { amount: 14900, name: "Monthly Plan", days: 30 }, // ₹149
+      "6months": { amount: 69900, name: "6 Months Plan", days: 180 }, // ₹699
+      yearly: { amount: 129900, name: "Yearly Plan", days: 365 }, // ₹1299
     };
 
     if (!plans[plan]) {

@@ -36,9 +36,26 @@ export default function PremiumPage() {
 
   const plans = [
     {
+      id: "trial",
+      name: "1 Day Trial",
+      price: 1,
+      period: "day",
+      description: "Test premium features for 1 day",
+      features: [
+        "Unlimited transaction records",
+        "Full Analysis & advanced charts",
+        "Export data to PDF/Excel",
+        "Priority customer support",
+        "Custom categories",
+        "Budget planning tools",
+      ],
+      color: "from-green-500 to-emerald-500",
+      popular: false,
+    },
+    {
       id: "monthly",
       name: "Monthly",
-      price: 99,
+      price: 149,
       period: "month",
       description: "Perfect for trying out premium features",
       features: [
@@ -55,8 +72,8 @@ export default function PremiumPage() {
     {
       id: "6months",
       name: "6 Months",
-      price: 499,
-      originalPrice: 594,
+      price: 699,
+      originalPrice: 894,
       period: "6 months",
       description: "Best value for growing businesses",
       features: [
@@ -73,8 +90,8 @@ export default function PremiumPage() {
     {
       id: "yearly",
       name: "Yearly",
-      price: 999,
-      originalPrice: 1188,
+      price: 1299,
+      originalPrice: 1788,
       period: "year",
       description: "Maximum savings for serious businesses",
       features: [
@@ -278,7 +295,7 @@ export default function PremiumPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {plans.map((plan) => (
             <div
               key={plan.id}
