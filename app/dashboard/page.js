@@ -334,6 +334,15 @@ export default function Dashboard() {
         <div className="mb-8">
           <h3 className="text-2xl text-center mb-6 text-white font-semibold">Our Services</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Full Analysis - Featured */}
+            <button onClick={() => router.push("/analysis")} className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-lg p-6 rounded-2xl border border-cyan-500/30 hover:border-cyan-400/50 transition-all hover:-translate-y-1 group col-span-2 md:col-span-1">
+              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-cyan-500/30">
+                <i className="fas fa-chart-pie text-white text-2xl"></i>
+              </div>
+              <p className="font-semibold text-white">Full Analysis</p>
+              <p className="text-xs text-cyan-300 mt-1">Charts & Graphs</p>
+            </button>
+
             <button onClick={() => router.push("/sales")} className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/20 hover:border-green-500/50 transition-all hover:-translate-y-1 group">
               <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
                 <i className="fas fa-shopping-cart text-white text-2xl"></i>
