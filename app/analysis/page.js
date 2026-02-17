@@ -158,12 +158,12 @@ export default function AnalysisPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">Total Expenses</p>
-                  <p className="text-2xl font-bold text-red-400">
+                  <p className="text-2xl font-bold text-yellow-400">
                     {formatCurrency(data.summary.totalExpenses)}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
-                  <i className="fas fa-receipt text-red-400 text-xl"></i>
+                <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                  <i className="fas fa-receipt text-yellow-400 text-xl"></i>
                 </div>
               </div>
             </div>
@@ -223,9 +223,9 @@ export default function AnalysisPage() {
                 <Line
                   type="monotone"
                   dataKey="expenses"
-                  stroke="#EF4444"
+                  stroke="#F59E0B"
                   strokeWidth={3}
-                  dot={{ fill: "#EF4444" }}
+                  dot={{ fill: "#F59E0B" }}
                   name="Expenses"
                 />
                 <Line
@@ -272,7 +272,7 @@ export default function AnalysisPage() {
                   />
                   <Bar
                     dataKey="expenses"
-                    fill="#EF4444"
+                    fill="#F59E0B"
                     name="Expenses"
                     radius={[4, 4, 0, 0]}
                   />
@@ -381,8 +381,8 @@ export default function AnalysisPage() {
               <span className="text-gray-300">Sales (Blue)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span className="text-gray-300">Expenses/Loss (Red)</span>
+              <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+              <span className="text-gray-300">Expenses (Yellow)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-green-500 rounded"></div>
