@@ -47,17 +47,7 @@ export default function ExpensesReport() {
     );
   };
 
-  const getCategoryColor = (category) => {
-    const colors = {
-      rent: "from-blue-500 to-blue-600",
-      "stock purchase": "from-purple-500 to-purple-600",
-      transport: "from-yellow-500 to-yellow-600",
-      electricity: "from-cyan-500 to-cyan-600",
-      salary: "from-green-500 to-green-600",
-      miscellaneous: "from-gray-500 to-gray-600",
-    };
-    return colors[category] || "from-gray-500 to-gray-600";
-  };
+  // Category color logic removed; not needed with new structure
 
   const profileImage = Cookies.get("profile_image") || "";
 
@@ -151,44 +141,43 @@ export default function ExpensesReport() {
           <h3 className="text-xl font-semibold mb-4 text-white">
             Expenses {period.charAt(0).toUpperCase() + period.slice(1)}
           </h3>
-
           {expenses.length === 0 ? (
             <div className="text-center py-12">
               <i className="fas fa-chart-bar text-4xl text-gray-500 mb-4"></i>
               <p className="text-gray-400">No expenses data for this period.</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {expenses.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="bg-white/5 p-4 rounded-xl border border-white/10 hover:border-red-500/50 transition-all"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <i className="fas fa-calendar text-gray-400 text-sm"></i>
-                        <span className="text-gray-300 text-sm">
-                          {expense.date}
-                        </span>
-                        <span
-                          className={`px-2 py-0.5 bg-gradient-to-r ${getCategoryColor(expense.category)} text-white text-xs rounded-full`}
-                        >
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm text-white border border-white/20">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2">Date</th>
+                    <th className="px-4 py-2">Amount</th>
+                    <th className="px-4 py-2">Category</th>
+                    <th className="px-4 py-2">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenses.map((expense) => (
+                    <tr key={expense.id}>
+                      <td className="border px-4 py-2">
+                        {new Date(expense.date).toLocaleDateString("en-IN")}
+                      </td>
+                      <td className="border px-4 py-2 text-red-400 font-medium">
+                        {formatCurrency(expense.amount)}
+                      </td>
+                      <td className="border px-4 py-2">
+                        <span className="px-2 py-1 bg-white/10 rounded-full text-xs">
                           {expense.category}
                         </span>
-                      </div>
-                      {expense.description && (
-                        <p className="text-gray-400 text-sm">
-                          {expense.description}
-                        </p>
-                      )}
-                    </div>
-                    <p className="text-xl font-bold text-red-400">
-                      {formatCurrency(expense.amount)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                      </td>
+                      <td className="border px-4 py-2 text-gray-300">
+                        {expense.description || "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

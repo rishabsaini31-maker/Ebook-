@@ -151,20 +151,28 @@ export default function SalesReport() {
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <i className="fas fa-calendar text-gray-400 text-sm"></i>
                         <span className="text-gray-300 text-sm">
                           {sale.date}
                         </span>
-                        <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full uppercase">
-                          {sale.payment_mode}
-                        </span>
+                        <div className="flex gap-2 ml-2">
+                          {parseFloat(sale.upi_amount) > 0 && (
+                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-md border border-blue-500/30">UPI: {formatCurrency(sale.upi_amount)}</span>
+                          )}
+                          {parseFloat(sale.cash_amount) > 0 && (
+                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-md border border-emerald-500/30">Cash: {formatCurrency(sale.cash_amount)}</span>
+                          )}
+                          {parseFloat(sale.card_amount) > 0 && (
+                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded-md border border-purple-500/30">Card: {formatCurrency(sale.card_amount)}</span>
+                          )}
+                        </div>
                       </div>
                       {sale.notes && (
                         <p className="text-gray-400 text-sm">{sale.notes}</p>
                       )}
                     </div>
-                    <p className="text-xl font-bold text-green-400">
+                    <p className="text-xl font-bold text-green-400 self-center">
                       {formatCurrency(sale.amount)}
                     </p>
                   </div>

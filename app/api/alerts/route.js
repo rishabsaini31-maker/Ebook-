@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import pool from "../../../lib/db";
 import { authenticateToken } from "../../../lib/auth";
+import { getKolkataDate, getKolkataYearMonth } from "../../../lib/utils";
 
 const getSum = async (table, userId, whereClause, params) => {
   const result = await pool.query(
-    `SELECT COALESCE(SUM(amount), 0) as total FROM ${table} WHERE user_id = $${params.length + 1} ${whereClause}`,
+    `SELECT COALESCE(SUM(amount), 0) as total FROM ${table} WHERE user_id = $1 ${whereClause}`,
     [userId, ...params],
   );
   return parseFloat(result.rows[0].total);
@@ -19,8 +20,7 @@ export async function GET(request) {
 
   try {
     const alerts = [];
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
+    const { year: currentYear, month: currentMonth } = getKolkataYearMonth();
 
     const monthlyIncome = await getSum(
       "sales",
@@ -54,9 +54,9 @@ export async function GET(request) {
     for (let i = 0; i < 7; i++) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split("T")[0];
+      const dateStr = getKolkataDate(date);
       const income = await getSum("sales", user.id, "AND date = $2", [dateStr]);
-      const expenses = await getSum("expenses", user.id, "AND date = $2", [
+      const expenses = await getSum("expenses", user.id, "AND date = $2 AND period = 'daily'", [
         dateStr,
       ]);
       if (income - expenses < 0) lossDays++;

@@ -4,7 +4,7 @@ import { authenticateToken } from "../../../lib/auth";
 
 const getSum = async (table, userId, whereClause, params) => {
   const result = await pool.query(
-    `SELECT COALESCE(SUM(amount), 0) as total FROM ${table} WHERE user_id = $${params.length + 1} ${whereClause}`,
+    `SELECT COALESCE(SUM(amount), 0) as total FROM ${table} WHERE user_id = $1 ${whereClause}`,
     [userId, ...params],
   );
   return parseFloat(result.rows[0].total);
@@ -31,7 +31,7 @@ export async function GET(request) {
     const todayIncome = await getSum("sales", user.id, "AND date = $2", [
       today,
     ]);
-    const todayExpenses = await getSum("expenses", user.id, "AND date = $2", [
+    const todayExpenses = await getSum("expenses", user.id, "AND date = $2 AND period = 'daily'", [
       today,
     ]);
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import pool from "../../../../lib/db";
 import { authenticateToken } from "../../../../lib/auth";
+import { getKolkataDate, getKolkataYearMonth } from "../../../../lib/utils";
 
 export async function GET(request) {
   const user = authenticateToken(request);
@@ -12,9 +13,8 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "daily";
-    const today = new Date().toISOString().split("T")[0];
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
+    const today = getKolkataDate();
+    const { year: currentYear, month: currentMonth } = getKolkataYearMonth();
 
     let query = "SELECT * FROM expenses WHERE user_id = $1";
     let params = [user.id];
@@ -26,8 +26,8 @@ export async function GET(request) {
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(endDate.getDate() - 6);
-      const startStr = startDate.toISOString().split("T")[0];
-      const endStr = endDate.toISOString().split("T")[0];
+      const startStr = getKolkataDate(startDate);
+      const endStr = getKolkataDate(endDate);
       query += " AND date >= $2 AND date <= $3 ORDER BY date DESC";
       params.push(startStr, endStr);
     } else if (period === "monthly") {

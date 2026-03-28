@@ -9,12 +9,16 @@ export default function Loans() {
   const router = useRouter();
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const getLocalDateString = () => {
+    return new Date().toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0];
+  };
+
   const [formData, setFormData] = useState({
     lender_name: "",
     amount: "",
     paid_amount: "0",
-    start_date: new Date().toISOString().split("T")[0],
-    due_date: new Date().toISOString().split("T")[0],
+    start_date: getLocalDateString(),
+    due_date: getLocalDateString(),
     description: "",
   });
 
@@ -63,8 +67,8 @@ export default function Loans() {
           lender_name: "",
           amount: "",
           paid_amount: "0",
-          start_date: new Date().toISOString().split("T")[0],
-          due_date: new Date().toISOString().split("T")[0],
+          start_date: getLocalDateString(),
+          due_date: getLocalDateString(),
           description: "",
         });
         fetchLoans();

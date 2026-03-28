@@ -11,10 +11,15 @@ export default function Sales() {
   const [loading, setLoading] = useState(true);
   const [entryLimit, setEntryLimit] = useState(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const getLocalDateString = () => {
+    return new Date().toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0];
+  };
+
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split("T")[0],
-    amount: "",
-    payment_mode: "cash",
+    date: getLocalDateString(),
+    upi: "",
+    cash: "",
+    card: "",
     notes: "",
   });
 
@@ -62,14 +67,14 @@ export default function Sales() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Check entry limit for free users
     if (entryLimit && !entryLimit.isPremium) {
       if (!entryLimit.canAddEntry) {
         setShowPremiumModal(true);
         return;
       }
-      
+
       // Increment entry count
       try {
         const token = Cookies.get("token");
@@ -77,7 +82,7 @@ export default function Sales() {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         });
-        
+
         if (!incrementResponse.ok) {
           const data = await incrementResponse.json();
           if (data.needsPremium) {
@@ -89,7 +94,7 @@ export default function Sales() {
         console.error("Error incrementing entry count:", error);
       }
     }
-    
+
     try {
       const token = Cookies.get("token");
       const response = await fetch("/api/sales", {
@@ -104,9 +109,10 @@ export default function Sales() {
       if (response.ok) {
         alert("Sale added successfully!");
         setFormData({
-          date: new Date().toISOString().split("T")[0],
-          amount: "",
-          payment_mode: "cash",
+          date: getLocalDateString(),
+          upi: "",
+          cash: "",
+          card: "",
           notes: "",
         });
         fetchSales();
@@ -202,59 +208,77 @@ export default function Sales() {
             className="grid grid-cols-1 sm:grid-cols-2 gap-4"
           >
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Date
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  Date
+                </label>
+                <span className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded-md mb-1"><i className="fas fa-lock mr-1"></i> Locked to Present</span>
+              </div>
               <input
                 type="date"
                 value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-all"
+                readOnly
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 cursor-not-allowed focus:outline-none transition-all"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Amount
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
-                }
-                placeholder="Enter amount"
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Payment Mode
-              </label>
-              <select
-                value={formData.payment_mode}
-                onChange={(e) =>
-                  setFormData({ ...formData, payment_mode: e.target.value })
-                }
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-all"
-              >
-                <option value="cash" className="bg-gray-800">
-                  Cash
-                </option>
-                <option value="upi" className="bg-gray-800">
+            {/* Direct payment modes with input boxes */}
+            <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   UPI
-                </option>
-                <option value="card" className="bg-gray-800">
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.upi}
+                  onChange={(e) =>
+                    setFormData({ ...formData, upi: e.target.value })
+                  }
+                  placeholder="Enter UPI amount"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Cash
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.cash}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cash: e.target.value })
+                  }
+                  placeholder="Enter cash amount"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Card
-                </option>
-              </select>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.card}
+                  onChange={(e) =>
+                    setFormData({ ...formData, card: e.target.value })
+                  }
+                  placeholder="Enter card amount"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all"
+                />
+              </div>
             </div>
-            <div>
+            {/* Dynamic Total Display */}
+            <div className="sm:col-span-2">
+              <div className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between shadow-inner">
+                <span className="text-gray-300 font-medium">Calculated Total</span>
+                <span className="text-2xl font-bold text-green-400">
+                  {formatCurrency((parseFloat(formData.upi) || 0) + (parseFloat(formData.cash) || 0) + (parseFloat(formData.card) || 0))}
+                </span>
+              </div>
+            </div>
+            <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Notes
               </label>
@@ -300,20 +324,28 @@ export default function Sales() {
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <i className="fas fa-calendar text-gray-400 text-sm"></i>
                         <span className="text-gray-300 text-sm">
                           {sale.date}
                         </span>
-                        <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full uppercase">
-                          {sale.payment_mode}
-                        </span>
+                        <div className="flex gap-2 ml-2">
+                          {parseFloat(sale.upi_amount) > 0 && (
+                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-md border border-blue-500/30">UPI: {formatCurrency(sale.upi_amount)}</span>
+                          )}
+                          {parseFloat(sale.cash_amount) > 0 && (
+                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-md border border-emerald-500/30">Cash: {formatCurrency(sale.cash_amount)}</span>
+                          )}
+                          {parseFloat(sale.card_amount) > 0 && (
+                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded-md border border-purple-500/30">Card: {formatCurrency(sale.card_amount)}</span>
+                          )}
+                        </div>
                       </div>
                       {sale.notes && (
                         <p className="text-gray-400 text-sm">{sale.notes}</p>
                       )}
                     </div>
-                    <p className="text-xl font-bold text-green-400">
+                    <p className="text-xl font-bold text-green-400 self-center">
                       {formatCurrency(sale.amount)}
                     </p>
                   </div>
@@ -332,9 +364,12 @@ export default function Sales() {
               <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-full flex items-center justify-center">
                 <i className="fas fa-crown text-black text-3xl"></i>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Entry Limit Reached</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Entry Limit Reached
+              </h3>
               <p className="text-gray-400 mb-6">
-                You've used all {entryLimit?.limit} free entries this month. Upgrade to Premium for unlimited entries!
+                You've used all {entryLimit?.limit} free entries this month.
+                Upgrade to Premium for unlimited entries!
               </p>
               <div className="flex gap-3">
                 <button

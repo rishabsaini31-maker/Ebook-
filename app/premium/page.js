@@ -55,7 +55,7 @@ export default function PremiumPage() {
     {
       id: "monthly",
       name: "Monthly",
-      price: 149,
+      price: 49,
       period: "month",
       description: "Perfect for trying out premium features",
       features: [
@@ -72,8 +72,8 @@ export default function PremiumPage() {
     {
       id: "6months",
       name: "6 Months",
-      price: 699,
-      originalPrice: 894,
+      price: 99,
+      originalPrice: 294,
       period: "6 months",
       description: "Best value for growing businesses",
       features: [
@@ -90,8 +90,8 @@ export default function PremiumPage() {
     {
       id: "yearly",
       name: "Yearly",
-      price: 1299,
-      originalPrice: 1788,
+      price: 199,
+      originalPrice: 588,
       period: "year",
       description: "Maximum savings for serious businesses",
       features: [
@@ -134,11 +134,15 @@ export default function PremiumPage() {
         body: JSON.stringify({ plan: plan.id }),
       });
 
-      if (!orderResponse.ok) {
-        throw new Error("Failed to create order");
-      }
-
       const orderData = await orderResponse.json();
+
+      if (!orderResponse.ok) {
+        if (orderData.error && orderData.error.includes("Invalid api key") || orderData.error.includes("mandatory")) {
+          alert("Payment System Not Configured: You need to add genuine Razorpay API Keys to your .env file to open the Premium Checkout.");
+          return;
+        }
+        throw new Error(orderData.error || "Failed to create order");
+      }
 
       // Load Razorpay script
       const scriptLoaded = await loadRazorpayScript();
@@ -207,7 +211,7 @@ export default function PremiumPage() {
       rzp.open();
     } catch (error) {
       console.error("Error initiating payment:", error);
-      alert("Failed to initiate payment. Please try again.");
+      alert("Failed to initiate payment check out: " + error.message);
     }
 
     setLoading(false);

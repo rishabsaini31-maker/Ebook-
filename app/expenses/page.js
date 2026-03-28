@@ -11,10 +11,34 @@ export default function Expenses() {
   const [loading, setLoading] = useState(true);
   const [entryLimit, setEntryLimit] = useState(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [period, setPeriod] = useState("daily");
+  const getLocalDateString = () => {
+    return new Date().toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0];
+  };
+
+  const getLastDayOfMonthDate = (year, monthStr) => {
+    const month = parseInt(monthStr, 10);
+    const lastDay = new Date(year, month, 0).getDate();
+    return `${year}-${monthStr}-${String(lastDay).padStart(2, '0')}`;
+  };
+
+  const getDisplayDate = (dateStr) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split('-');
+    const dateObj = new Date(year, parseInt(month) - 1, day);
+    return dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split("T")[0],
+    date: getLocalDateString(),
     amount: "",
-    category: "rent",
+    category: "",
+    rent: "",
+    transport: "",
+    salary: "",
+    purchase: "",
+    electricity: "",
+    miscellaneous: "",
     description: "",
   });
 
@@ -38,58 +62,48 @@ export default function Expenses() {
         const data = await response.json();
         setExpenses(data);
       }
-    } catch (error) {
-      console.error("Error fetching expenses:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchEntryLimit = async () => {
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch("/api/entry-limit", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setEntryLimit(data);
+      } catch (error) {
+        console.error("Error fetching expenses:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching entry limit:", error);
-    }
-  };
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Check entry limit for free users
-    if (entryLimit && !entryLimit.isPremium) {
-      if (!entryLimit.canAddEntry) {
+    const fetchEntryLimit = async () => {
+      try {
+        const token = Cookies.get("token");
+        const response = await fetch("/api/entry-limit", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setEntryLimit(data);
+        }
+      } catch (error) {
+        console.error("Error fetching entry limit:", error);
+      }
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+
+      if (entryLimit?.used >= entryLimit?.limit) {
         setShowPremiumModal(true);
         return;
       }
-      
-      // Increment entry count
-      try {
-        const token = Cookies.get("token");
-        const incrementResponse = await fetch("/api/entry-limit", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        if (!incrementResponse.ok) {
-          const data = await incrementResponse.json();
-          if (data.needsPremium) {
-            setShowPremiumModal(true);
-            return;
-          }
+
+      // Optimistic update of entry limit
+      if (entryLimit) {
+        try {
+          const token = Cookies.get("token");
+          await fetch("/api/entry-limit/increment", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (error) {
+          console.error("Error incrementing entry count:", error);
         }
-      } catch (error) {
-        console.error("Error incrementing entry count:", error);
       }
-    }
-    
     try {
       const token = Cookies.get("token");
       const response = await fetch("/api/expenses", {
@@ -98,13 +112,14 @@ export default function Expenses() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, period }),
       });
 
       if (response.ok) {
         alert("Expense added successfully!");
+        const todayDate = getLocalDateString();
         setFormData({
-          date: new Date().toISOString().split("T")[0],
+          date: period === 'monthly' ? getLastDayOfMonthDate(todayDate.split('-')[0], todayDate.split('-')[1]) : todayDate,
           amount: "",
           category: "rent",
           description: "",
@@ -200,91 +215,108 @@ export default function Expenses() {
             <i className="fas fa-plus-circle text-red-400"></i>
             Add Expense
           </h3>
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-          >
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Date
-              </label>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Amount
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
-                }
-                placeholder="Enter amount"
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Category
-              </label>
-              <select
-                value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
-                }
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-all"
+          {/* Period Selector */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {['daily', 'monthly'].map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => {
+                  setPeriod(p);
+                  const todayDate = getLocalDateString();
+                  if (p === 'monthly') {
+                    const [year, month] = todayDate.split('-');
+                    setFormData({ ...formData, date: getLastDayOfMonthDate(year, month) });
+                  } else {
+                    setFormData({ ...formData, date: todayDate });
+                  }
+                }}
+                className={`px-4 py-2 rounded-xl font-semibold transition-all text-sm ${period === p ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
               >
-                <option value="rent" className="bg-gray-800">
-                  Rent
-                </option>
-                <option value="stock purchase" className="bg-gray-800">
-                  Stock Purchase
-                </option>
-                <option value="transport" className="bg-gray-800">
-                  Transport
-                </option>
-                <option value="electricity" className="bg-gray-800">
-                  Electricity
-                </option>
-                <option value="salary" className="bg-gray-800">
-                  Salary
-                </option>
-                <option value="miscellaneous" className="bg-gray-800">
-                  Miscellaneous
-                </option>
-              </select>
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </button>
+            ))}
+          </div>
+          
+          {period === 'monthly' && (
+            <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl flex items-start gap-3 shadow-inner">
+              <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+                <i className="fas fa-info-circle text-blue-400"></i>
+              </div>
+              <div>
+                <p className="text-gray-200 font-semibold mb-1">Monthly Expense Date Rule</p>
+                <p className="text-gray-400 text-sm">You can enter data on the last date of every month. Just select the target month below.</p>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Description
-              </label>
-              <input
-                type="text"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Optional description"
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all"
-              />
+          )}
+
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {period === 'monthly' && (
+              <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-300">Date</label>
+                    <span className="text-xs text-blue-400 bg-blue-400/10 px-2 py-1 rounded-md mb-1"><i className="fas fa-calendar-alt mr-1"></i>{getDisplayDate(formData.date)}</span>
+                  </div>
+                  <input type="month" value={formData.date.substring(0, 7)} onChange={e => {
+                    const val = e.target.value;
+                    if (val) {
+                      const [yr, mo] = val.split('-');
+                      setFormData({ ...formData, date: getLastDayOfMonthDate(yr, mo) });
+                    }
+                  }} required className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Rent</label>
+                  <input type="number" step="0.01" value={formData.rent} onChange={e => setFormData({ ...formData, rent: e.target.value })} placeholder="Enter rent amount" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Transport</label>
+                  <input type="number" step="0.01" value={formData.transport} onChange={e => setFormData({ ...formData, transport: e.target.value })} placeholder="Enter transport amount" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Salary</label>
+                  <input type="number" step="0.01" value={formData.salary} onChange={e => setFormData({ ...formData, salary: e.target.value })} placeholder="Enter salary amount" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Stock Purchase</label>
+                  <input type="number" step="0.01" value={formData.purchase} onChange={e => setFormData({ ...formData, purchase: e.target.value })} placeholder="Enter purchase amount" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Electricity</label>
+                  <input type="number" step="0.01" value={formData.electricity} onChange={e => setFormData({ ...formData, electricity: e.target.value })} placeholder="Enter electricity amount" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Miscellaneous</label>
+                  <input type="number" step="0.01" value={formData.miscellaneous} onChange={e => setFormData({ ...formData, miscellaneous: e.target.value })} placeholder="Enter miscellaneous amount" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all" />
+                </div>
+              </div>
+            )}
+            {period === 'daily' && (
+              <>
+                <div className="sm:col-span-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-300">Date</label>
+                    <span className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded-md mb-1"><i className="fas fa-lock mr-1"></i>Locked to Present</span>
+                  </div>
+                  <input type="date" value={formData.date} readOnly className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 cursor-not-allowed focus:outline-none transition-all" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Amount</label>
+                  <input type="number" step="0.01" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all" required />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                  <input type="text" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} placeholder="Enter category" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all" required />
+                </div>
+              </>
+            )}
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+              <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Optional description" className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all" />
             </div>
             <div className="sm:col-span-2">
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-pink-600 transition-all shadow-lg"
-              >
+              <button type="submit" className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-pink-600 transition-all shadow-lg">
                 <i className="fas fa-plus mr-2"></i>
                 Add Expense
               </button>
@@ -305,7 +337,7 @@ export default function Expenses() {
             </div>
           ) : (
             <div className="space-y-3">
-              {expenses.map((expense) => (
+              {expenses.filter(e => e.period === period).map((expense) => (
                 <div
                   key={expense.id}
                   className="bg-white/5 p-4 rounded-xl border border-white/10 hover:border-red-500/50 transition-all"
@@ -348,9 +380,12 @@ export default function Expenses() {
               <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-full flex items-center justify-center">
                 <i className="fas fa-crown text-black text-3xl"></i>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Entry Limit Reached</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Entry Limit Reached
+              </h3>
               <p className="text-gray-400 mb-6">
-                You've used all {entryLimit?.limit} free entries this month. Upgrade to Premium for unlimited entries!
+                You've used all {entryLimit?.limit} free entries this month.
+                Upgrade to Premium for unlimited entries!
               </p>
               <div className="flex gap-3">
                 <button

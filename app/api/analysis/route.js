@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import pool from "../../../lib/db";
 import { authenticateToken } from "../../../lib/auth";
+import { getKolkataDate, getKolkataYearMonth } from "../../../lib/utils";
 
 export async function GET(request) {
   const user = authenticateToken(request);
@@ -12,9 +13,8 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "daily";
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
-    const today = new Date().toISOString().split("T")[0];
+    const { year: currentYear, month: currentMonth } = getKolkataYearMonth();
+    const today = getKolkataDate();
 
     let salesData = [];
     let expensesData = [];
@@ -26,7 +26,7 @@ export async function GET(request) {
       for (let i = 6; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split("T")[0];
+        const dateStr = getKolkataDate(date);
         const dayName = date.toLocaleDateString("en-IN", { weekday: "short" });
 
         const salesResult = await pool.query(
@@ -35,7 +35,7 @@ export async function GET(request) {
         );
 
         const expensesResult = await pool.query(
-          "SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE user_id = $1 AND date = $2",
+          "SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE user_id = $1 AND date = $2 AND period = 'daily'",
           [user.id, dateStr],
         );
 
@@ -59,7 +59,7 @@ export async function GET(request) {
         [user.id, today],
       );
       const todayExpenses = await pool.query(
-        "SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE user_id = $1 AND date = $2",
+        "SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE user_id = $1 AND date = $2 AND period = 'daily'",
         [user.id, today],
       );
 
@@ -78,8 +78,8 @@ export async function GET(request) {
         const startDate = new Date(endDate);
         startDate.setDate(startDate.getDate() - 6);
 
-        const startStr = startDate.toISOString().split("T")[0];
-        const endStr = endDate.toISOString().split("T")[0];
+        const startStr = getKolkataDate(startDate);
+        const endStr = getKolkataDate(endDate);
         const weekLabel = `Week ${4 - i}`;
 
         const salesResult = await pool.query(
@@ -108,7 +108,7 @@ export async function GET(request) {
       // This week's summary
       const weekStart = new Date();
       weekStart.setDate(weekStart.getDate() - 6);
-      const weekStartStr = weekStart.toISOString().split("T")[0];
+      const weekStartStr = getKolkataDate(weekStart);
 
       const weekSales = await pool.query(
         "SELECT COALESCE(SUM(amount), 0) as total FROM sales WHERE user_id = $1 AND date >= $2",
@@ -240,18 +240,21 @@ export async function GET(request) {
 
     // Get payment modes for pie chart
     const paymentModesResult = await pool.query(
-      `SELECT payment_mode, SUM(amount) as total 
+      `SELECT 
+         COALESCE(SUM(upi_amount), 0) as upi_total,
+         COALESCE(SUM(cash_amount), 0) as cash_total,
+         COALESCE(SUM(card_amount), 0) as card_total
        FROM sales 
-       WHERE user_id = $1 
-       GROUP BY payment_mode 
-       ORDER BY total DESC`,
+       WHERE user_id = $1`,
       [user.id],
     );
 
-    const paymentModeData = paymentModesResult.rows.map((row) => ({
-      name: row.payment_mode?.toUpperCase() || "OTHER",
-      value: parseFloat(row.total),
-    }));
+    const paymentModesRow = paymentModesResult.rows[0];
+    const paymentModeData = [
+      { name: "UPI", value: parseFloat(paymentModesRow.upi_total) },
+      { name: "CASH", value: parseFloat(paymentModesRow.cash_total) },
+      { name: "CARD", value: parseFloat(paymentModesRow.card_total) },
+    ].filter(mode => mode.value > 0).sort((a, b) => b.value - a.value);
 
     return NextResponse.json({
       chartData: salesData,
