@@ -12,7 +12,9 @@ export default function Sales() {
   const [entryLimit, setEntryLimit] = useState(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const getLocalDateString = () => {
-    return new Date().toLocaleString('en-CA', { timeZone: 'Asia/Kolkata' }).split(',')[0];
+    return new Date()
+      .toLocaleString("en-CA", { timeZone: "Asia/Kolkata" })
+      .split(",")[0];
   };
 
   const [formData, setFormData] = useState({
@@ -36,12 +38,16 @@ export default function Sales() {
   const fetchSales = async () => {
     try {
       const token = Cookies.get("token");
-      const response = await fetch("/api/sales", {
+      // You can manage page/limit in state if you want to support pagination UI
+      const page = 1;
+      const limit = 20;
+      const response = await fetch(`/api/sales?page=${page}&limit=${limit}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
-        const data = await response.json();
-        setSales(data);
+        const result = await response.json();
+        setSales(result.data);
+        // Optionally, store result.total, result.page, result.limit for pagination UI
       }
     } catch (error) {
       console.error("Error fetching sales:", error);
@@ -212,7 +218,9 @@ export default function Sales() {
                 <label className="block text-sm font-medium text-gray-300">
                   Date
                 </label>
-                <span className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded-md mb-1"><i className="fas fa-lock mr-1"></i> Locked to Present</span>
+                <span className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded-md mb-1">
+                  <i className="fas fa-lock mr-1"></i> Locked to Present
+                </span>
               </div>
               <input
                 type="date"
@@ -272,9 +280,15 @@ export default function Sales() {
             {/* Dynamic Total Display */}
             <div className="sm:col-span-2">
               <div className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between shadow-inner">
-                <span className="text-gray-300 font-medium">Calculated Total</span>
+                <span className="text-gray-300 font-medium">
+                  Calculated Total
+                </span>
                 <span className="text-2xl font-bold text-green-400">
-                  {formatCurrency((parseFloat(formData.upi) || 0) + (parseFloat(formData.cash) || 0) + (parseFloat(formData.card) || 0))}
+                  {formatCurrency(
+                    (parseFloat(formData.upi) || 0) +
+                      (parseFloat(formData.cash) || 0) +
+                      (parseFloat(formData.card) || 0),
+                  )}
                 </span>
               </div>
             </div>
@@ -331,13 +345,19 @@ export default function Sales() {
                         </span>
                         <div className="flex gap-2 ml-2">
                           {parseFloat(sale.upi_amount) > 0 && (
-                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-md border border-blue-500/30">UPI: {formatCurrency(sale.upi_amount)}</span>
+                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-md border border-blue-500/30">
+                              UPI: {formatCurrency(sale.upi_amount)}
+                            </span>
                           )}
                           {parseFloat(sale.cash_amount) > 0 && (
-                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-md border border-emerald-500/30">Cash: {formatCurrency(sale.cash_amount)}</span>
+                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-md border border-emerald-500/30">
+                              Cash: {formatCurrency(sale.cash_amount)}
+                            </span>
                           )}
                           {parseFloat(sale.card_amount) > 0 && (
-                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded-md border border-purple-500/30">Card: {formatCurrency(sale.card_amount)}</span>
+                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded-md border border-purple-500/30">
+                              Card: {formatCurrency(sale.card_amount)}
+                            </span>
                           )}
                         </div>
                       </div>

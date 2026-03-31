@@ -59,7 +59,14 @@ export async function POST(request) {
         if (type.value && parseFloat(type.value) > 0) {
           await pool.query(
             "INSERT INTO expenses (user_id, date, amount, category, description, period) VALUES ($1, $2, $3, $4, $5, $6)",
-            [user.id, date, type.value, type.label, description, period || "monthly"],
+            [
+              user.id,
+              date,
+              type.value,
+              type.label,
+              description,
+              period || "monthly",
+            ],
           );
           inserted = true;
         }
@@ -86,12 +93,31 @@ export async function GET(request) {
   }
 
   try {
-    const result = await pool.query(
-      "SELECT * FROM expenses WHERE user_id = $1 ORDER BY date DESC",
+    // Parse pagination params
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page")) || 1;
+    const limit = parseInt(searchParams.get("limit")) || 20;
+    const offset = (page - 1) * limit;
+
+    // Get total count for frontend
+    const countResult = await pool.query(
+      "SELECT COUNT(*) FROM expenses WHERE user_id = $1",
       [user.id],
     );
+    const total = parseInt(countResult.rows[0].count);
 
-    return NextResponse.json(result.rows);
+    // Fetch paginated data
+    const result = await pool.query(
+      "SELECT * FROM expenses WHERE user_id = $1 ORDER BY date DESC LIMIT $2 OFFSET $3",
+      [user.id, limit, offset],
+    );
+
+    return NextResponse.json({
+      data: result.rows,
+      total,
+      page,
+      limit,
+    });
   } catch (error) {
     console.error("Error fetching expenses:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

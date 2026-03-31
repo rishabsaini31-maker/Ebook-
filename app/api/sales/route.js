@@ -32,7 +32,10 @@ export async function POST(request) {
     const totalAmount = upiAmount + cashAmount + cardAmount;
 
     if (totalAmount <= 0) {
-      return NextResponse.json({ error: "Please enter a valid amount" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Please enter a valid amount" },
+        { status: 400 },
+      );
     }
 
     await pool.query(
@@ -55,6 +58,20 @@ export async function GET(request) {
   }
 
   try {
+    // Parse pagination params
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page")) || 1;
+    const limit = parseInt(searchParams.get("limit")) || 20;
+    const offset = (page - 1) * limit;
+
+    // Get total count of grouped dates
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM (SELECT date FROM sales WHERE user_id = $1 GROUP BY date) AS grouped_dates`,
+      [user.id],
+    );
+    const total = parseInt(countResult.rows[0].count);
+
+    // Fetch paginated grouped sales by date
     const result = await pool.query(
       `SELECT 
          TO_CHAR(date::DATE, 'YYYY-MM-DD') as date, 
@@ -67,11 +84,17 @@ export async function GET(request) {
        FROM sales 
        WHERE user_id = $1 
        GROUP BY date 
-       ORDER BY date DESC`,
-      [user.id],
+       ORDER BY date DESC
+       LIMIT $2 OFFSET $3`,
+      [user.id, limit, offset],
     );
 
-    return NextResponse.json(result.rows);
+    return NextResponse.json({
+      data: result.rows,
+      total,
+      page,
+      limit,
+    });
   } catch (error) {
     console.error("Error fetching sales:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
